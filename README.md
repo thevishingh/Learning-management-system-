@@ -1,5 +1,3 @@
----
-
 ````markdown
 # 📚 Learning Management System (LMS)
 
