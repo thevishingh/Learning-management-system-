@@ -1,5 +1,5 @@
-import React from "react";
-import { useForm } from "react-hook-form";
+import React, { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
@@ -7,23 +7,31 @@ import Lottie from "lottie-react";
 import { useNavigate } from "react-router-dom";
 import loginAnimation from "@/assets/Informative-pages/Banner-page/Loginverification.json";
 import "react-toastify/dist/ReactToastify.css";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { IoEyeOutline } from "react-icons/io5";
+import { IoEye } from "react-icons/io5";
 
 export default function Login() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isValid },
     reset,
-  } = useForm({ mode: "onChange" });
+  } = useForm({
+    mode: "onChange",
+    defaultValues: {
+      role: "student", // 👈 default role value
+    },
+  });
 
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit = async (data) => {
     try {
-      const res = await axios.post(
-        "http://localhost:5000/auth/login",
-        data
-      );
+      const res = await axios.post("http://localhost:5000/auth/login", data);
 
       if (res.data.success) {
         const { accessToken, user } = res.data.data;
@@ -45,7 +53,7 @@ export default function Login() {
       console.error("Login failed", error.response?.data || error.message);
     }
   };
-  
+
   return (
     <>
       <ToastContainer />
@@ -70,7 +78,7 @@ export default function Login() {
 
         {/* Form Section */}
         <div className="w-full bg-top lg:w-1/2 flex items-center justify-center">
-          <div className="max-w-md w-full border shadow-2xl rounded-2xl p-6">
+          <div className="max-w-md w-full border-2 border-black shadow-xl rounded-xl p-6">
             <h1 className="text-3xl font-semibold mb-6 text-black font-mont-alt capitalize text-center">
               Sign In
             </h1>
@@ -80,7 +88,7 @@ export default function Login() {
               <div className="w-full lg:w-1/2 mb-2 lg:mb-0">
                 <button
                   type="button"
-                  className="w-full flex justify-center items-center gap-2 bg-black text-sm text-white font-mont p-2 rounded-md hover:bg-gray-50 border border-gray-200 cursor-pointer focus:outline-none hover:text-black focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 transition-colors duration-300"
+                  className="w-full h-12 flex justify-center items-center gap-2 bg-black text-sm text-white font-mont p-2 rounded-md hover:bg-gray-50 border-2 border-green-600 cursor-pointer focus:outline-none hover:text-black focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 transition-colors duration-300"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -111,7 +119,7 @@ export default function Login() {
               <div className="w-full lg:w-1/2 ml-0 lg:ml-2">
                 <button
                   type="button"
-                  className="w-full flex justify-center items-center gap-2 bg-amber-300 text-sm text-black font-mont p-2 rounded-md hover:bg-gray-50 border border-gray-200 cursor-pointer hover:text-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 transition-colors duration-300"
+                  className="w-full h-12 flex justify-center items-center gap-2 bg-amber-300 text-sm text-black font-mont p-2 rounded-md hover:bg-gray-50 border-2 border-black cursor-pointer hover:text-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 transition-colors duration-300"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -127,7 +135,7 @@ export default function Login() {
             </div>
 
             {/* OR with email */}
-            <div className="mt-4 font-mont-alt text-sm text-gray-600 text-center">
+            <div className="mt-4 font-mont-alt text-[16px] text-black font-[400] text-center">
               <p>or with email</p>
             </div>
 
@@ -137,7 +145,7 @@ export default function Login() {
               <div>
                 <label
                   htmlFor="userEmail"
-                  className="block font-mont text-sm font-medium text-gray-700"
+                  className="block font-mont-alt text-sm font-medium text-gray-700"
                 >
                   Email
                 </label>
@@ -151,11 +159,12 @@ export default function Login() {
                       message: "Enter a valid email address",
                     },
                   })}
-                  className={`mt-1 font-mont p-2 w-full border rounded-md focus:outline-none focus:ring-2 transition duration-300 ${
+                  className={`mt-1 font-mont p-2 w-full border-2 border-black rounded-md focus:outline-none focus:ring-1 transition duration-300 ${
                     errors.userEmail
                       ? "border-red-500 ring-red-300"
                       : "focus:border-gray-200 focus:ring-gray-300"
                   }`}
+                  placeholder="Enter your email"
                 />
                 {errors.userEmail && (
                   <p className="text-red-600 text-xs mt-1 font-mont-alt">
@@ -165,35 +174,77 @@ export default function Login() {
               </div>
 
               {/* Password */}
-              <div>
+              <div className="w-full">
                 <label
                   htmlFor="password"
                   className="block font-mont text-sm font-medium text-gray-700"
                 >
                   Password
                 </label>
-                <input
-                  type="password"
-                  id="password"
-                  {...register("password", {
-                    required: "Password is required",
-                    pattern: {
-                      value: /^(?=.*[a-zA-Z\d@$!%*?&]).{8,}$/,
-                      message:
-                        "Password must be at least 8 characters and include at least one lowercase, uppercase, number, or special character",
-                    },
-                  })}
-                  className={`mt-1 font-mont p-2 w-full border rounded-md focus:outline-none focus:ring-2 transition duration-300 ${
-                    errors.password
-                      ? "border-red-500 ring-red-300"
-                      : "focus:border-gray-200 focus:ring-gray-300"
-                  }`}
-                />
+                <div className="relative w-full mt-1">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    id="password"
+                    {...register("password", {
+                      required: "Password is required",
+                      pattern: {
+                        value:
+                          /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&^])[A-Za-z\d@$!%*#?&^]{8,}$/,
+                        message:
+                          "Password must be 8+ characters, with letters, numbers & special characters",
+                      },
+                    })}
+                    className="font-mont p-2 border-black border-2 w-full rounded-md focus:border-gray-400 focus:outline-none focus:ring-0 focus:ring-gray-600 transition-colors duration-300 pr-10"
+                    placeholder="Enter your password"
+                  />
+                  {/* Eye Icon */}
+                  <div
+                    className="absolute inset-y-0 right-2 flex items-center cursor-pointer text-gray-600"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <IoEye /> : <IoEyeOutline />}
+                  </div>
+                </div>
+
                 {errors.password && (
-                  <p className="text-red-600 text-xs mt-1 font-mont-alt">
+                  <p className="text-sm text-red-600 mt-1">
                     {errors.password.message}
                   </p>
                 )}
+              </div>
+
+              {/* radio buttons for role selection */}
+              <div>
+                <Controller
+                  name="role"
+                  control={control}
+                  render={({ field }) => (
+                    <RadioGroup
+                      className="flex items-center justify-around cursor-pointer"
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="student" id="student" />
+                        <Label
+                          className="font-mont-alt text-sm font-medium text-gray-700"
+                          htmlFor="student"
+                        >
+                          Student
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="educator" id="educator" />
+                        <Label
+                          className="font-mont-alt text-sm font-medium text-gray-700"
+                          htmlFor="educator"
+                        >
+                          Educator
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  )}
+                />
               </div>
 
               {/* Submit Button */}
@@ -201,21 +252,30 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={!isValid}
-                  className={`w-full cursor-pointer font-mont-alt p-2 rounded-md text-white transition-colors duration-300 ${
+                  className={`w-full mt-4 bg-black cursor-pointer font-mont-alt p-2 rounded-md text-white transition-colors duration-300 ${
                     isValid
                       ? "bg-black hover:bg-gray-800 focus:bg-black"
-                      : "bg-gray-400 cursor-not-allowed"
+                      : "bg-orange-400 border-2 border-black cursor-not-allowed"
                   }`}
                 >
-                  Sign Up
+                  Login
                 </button>
+              </div>
+              {/* Forgot Password Link */}
+              <div className="mt-1 text-center">
+                <Link
+                  to="/forgot-password"
+                  className="text-sm font-medium text-blue-600 hover:underline font-mont-alt"
+                >
+                  Forgot Your Password?
+                </Link>
               </div>
             </form>
 
             {/* Footer Link */}
             <div className="mt-4 text-sm font-mont-alt text-gray-600 text-center">
               <p>
-                Already have an account?{" "}
+                Don't have an account?{" "}
                 <Link
                   to="/register"
                   className="text-red-600 font-medium hover:underline"

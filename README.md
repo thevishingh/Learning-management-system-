@@ -1,8 +1,6 @@
 ````markdown
 # 📚 Learning Management System (LMS)
 
-![Dashboard](./assets/dashboard.png)
-
 A **full-stack LMS** for students and educators with authentication, role-based access, and course management.
 
 ---
