@@ -1,7 +1,7 @@
 ````markdown
 # 📚 Learning Management System (LMS)
 
-![LMS Thumbnail](https://raw.githubusercontent.com/thevishingh/lms/main/assets/dashboard.png)
+![LMS Thumbnail](./assets/dashboard.png);
 
 A **full-stack LMS** for students and educators with authentication, role-based access, and course management.
 
