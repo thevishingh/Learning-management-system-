@@ -1,31 +1,39 @@
-'use client';;
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence, easeInOut } from 'framer-motion';
-import { Menu, X, ArrowRight, Zap, Search } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import Logo from "@/assets/Logo.png"
-
+"use client";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence, easeInOut } from "framer-motion";
+import { Menu, X, ArrowRight, Zap, Search } from "lucide-react";
+import { Link } from "react-router-dom";
+import Logo from "@/assets/Logo.png";
+import { useDispatch, useSelector } from "react-redux";
+import { Button } from "../ui/button";
+import { IoPersonCircle } from "react-icons/io5";
+import axios from "axios";
+import { serverUrl } from "@/App";
+import { setUserData } from "@/redux/userSlice";
+import { toast } from "react-toastify";
 
 const navItems = [
-  { name: 'Home', to: '/' },
-  { name: 'About', to: '/about' },
-  { name: 'Courses', to: '/courses' },
-  { name: 'Pricing', to: '/pricing' },
-  { name: 'Resources', to: '/resources' },
-  { name: 'Contact', to: '/contact' },
+  { name: "Home", to: "/" },
+  { name: "About", to: "/about" },
+  { name: "Courses", to: "/courses" },
+  { name: "Pricing", to: "/pricing" },
+  { name: "Resources", to: "/resources" },
+  { name: "Contact", to: "/contact" },
 ];
 
 export default function Header2() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState(null);
+  const { userData } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const containerVariants = {
@@ -48,7 +56,7 @@ export default function Header2() {
   const mobileMenuVariants = {
     closed: {
       opacity: 0,
-      x: '100%',
+      x: "100%",
       transition: {
         duration: 0.3,
         ease: easeInOut,
@@ -70,26 +78,42 @@ export default function Header2() {
     open: { opacity: 1, x: 0 },
   };
 
+  const handleLogout = async () => {
+    try {
+      const result = await axios.get(serverUrl + "/api/auth/logout", {
+        withCredentials: true,
+      });
+      console.log(result);
+      dispatch(setUserData(null));
+      toast.success("Logout Successfully");
+    } catch (error) {
+      console.log(error);
+      toast.error(error.response.data.message);
+    }
+  };
+
   return (
     <>
       <motion.header
         className={`fixed top-0 right-0 left-0 z-50 transition-all duration-500 ${
           isScrolled
-            ? 'border-border/50 bg-background/80 border-b shadow-sm backdrop-blur-md'
-            : 'bg-transparent'
+            ? "border-border/50 bg-background/80 border-b shadow-sm backdrop-blur-md"
+            : "bg-transparent"
         }`}
         variants={containerVariants}
         initial="hidden"
-        animate="visible">
+        animate="visible"
+      >
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <motion.div
               className="flex items-center space-x-3"
               variants={itemVariants}
               whileHover={{ scale: 1.02 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 25 }}>
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            >
               <Link to="/" className="flex items-center space-x-3">
-              <img src={Logo} alt="Logo" className='w-25 h-25' />
+                <img src={Logo} alt="Logo" className="w-25 h-25" />
               </Link>
             </motion.div>
 
@@ -100,10 +124,12 @@ export default function Header2() {
                   variants={itemVariants}
                   className="relative"
                   onMouseEnter={() => setHoveredItem(item.name)}
-                  onMouseLeave={() => setHoveredItem(null)}>
+                  onMouseLeave={() => setHoveredItem(null)}
+                >
                   <Link
                     to={item.to}
-                    className="text-foreground/80 font-mont-alt capitalize hover:text-white relative rounded-lg px-4 py-2 text-sm font-semibold transition-colors duration-200">
+                    className="text-foreground/80 font-mont-alt capitalize hover:text-white relative rounded-lg px-4 py-2 text-sm font-semibold transition-colors duration-200"
+                  >
                     {hoveredItem === item.name && (
                       <motion.div
                         className="bg-red-600 absolute inset-0 rounded-lg"
@@ -112,10 +138,11 @@ export default function Header2() {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{
-                          type: 'spring',
+                          type: "spring",
                           stiffness: 400,
                           damping: 30,
-                        }} />
+                        }}
+                      />
                     )}
                     <span className="relative z-10">{item.name}</span>
                   </Link>
@@ -123,35 +150,63 @@ export default function Header2() {
               ))}
             </nav>
 
-            <motion.div className="hidden items-center space-x-3 lg:flex" variants={itemVariants}>
+            <motion.div
+              className="hidden items-center space-x-3 lg:flex"
+              variants={itemVariants}
+            >
               <motion.button
-                className="text-muted-foreground hover:bg-red-700 hover:text-white rounded-lg p-2 transition-colors duration-200"
+                className="text-muted-foreground rounded-lg p-2 transition-colors duration-200"
                 whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}>
-                <Search className="h-5 w-5" />
+                whileTap={{ scale: 0.95 }}
+              >
+                {!userData && <IoPersonCircle className=" h-auto w-10" />}
               </motion.button>
 
-              <Link
-                to="/login"
-                className="text-foreground/80 font-mont-alt capitalize hover:text-foreground px-4 py-2 text-sm font-medium transition-colors duration-200">
-                Sign In
-              </Link>
+              {userData && (
+                <div className="w-[50px] h-[50px] rounded-full text-white flex items-center justify-center text-[20px] border-2 bg-black border-white cursor-pointer">
+                  {userData?.data?.name.slice(0, 1).toUpperCase()}
+                </div>
+              )}
 
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              {userData?.data?.role?.toLowerCase() === "educator" && (
                 <Link
-                  to="/register"
-                  className="bg-foreground font-mont-alt capitalize text-background hover:bg-foreground/90 inline-flex items-center space-x-2 rounded-lg px-5 py-2.5 text-sm font-medium shadow-sm transition-all duration-200">
-                  <span>Get Started</span>
-                  <ArrowRight className="h-4 w-4" />
+                  to="/dashboard"
+                  className="bg-foreground cursor-pointer font-mont-alt capitalize text-background hover:bg-foreground/90 inline-flex items-center space-x-2 rounded-lg px-5 py-2.5 text-sm font-medium shadow-sm transition-all duration-200"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Dashboard
                 </Link>
-              </motion.div>
+              )}
+
+              {!userData ? (
+                <Link
+                  to="/login"
+                  className="text-black
+                 border-2 space-y-2 border-black  outline-none font-mont-alt capitalize px-4 py-2 text-sm font-medium transition-colors duration-200 rounded-sm"
+                >
+                  Sign In
+                </Link>
+              ) : (
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                    <Button className="bg-foreground cursor-pointer font-mont-alt capitalize text-background hover:bg-foreground/90 inline-flex items-center space-x-2 rounded-lg px-5 py-2.5 text-sm font-medium shadow-sm transition-all duration-200"
+                    onClick={()=>handleLogout()}
+                    >
+                    <span>Logout</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </motion.div>
+              )}
             </motion.div>
 
             <motion.button
               className="text-foreground hover:bg-muted rounded-lg p-2 transition-colors duration-200 lg:hidden"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               variants={itemVariants}
-              whileTap={{ scale: 0.95 }}>
+              whileTap={{ scale: 0.95 }}
+            >
               {isMobileMenuOpen ? (
                 <X className="h-6 w-6" />
               ) : (
@@ -169,13 +224,15 @@ export default function Header2() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setIsMobileMenuOpen(false)} />
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
             <motion.div
               className="border-border bg-background fixed top-16 right-4 z-50 w-80 overflow-hidden rounded-2xl border shadow-2xl lg:hidden"
               variants={mobileMenuVariants}
               initial="closed"
               animate="open"
-              exit="closed">
+              exit="closed"
+            >
               <div className="space-y-6 p-6">
                 <div className="space-y-1">
                   {navItems.map((item) => (
@@ -183,7 +240,8 @@ export default function Header2() {
                       <Link
                         to="/login"
                         className="text-foreground font-syne text-sm tracking-wider hover:bg-muted block rounded-lg px-4 py-3 font-medium transition-colors duration-200"
-                        onClick={() => setIsMobileMenuOpen(false)}>
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
                         {item.name}
                       </Link>
                     </motion.div>
@@ -192,19 +250,37 @@ export default function Header2() {
 
                 <motion.div
                   className="border-border space-y-3 border-t pt-6"
-                  variants={mobileItemVariants}>
-                  <Link
-                    to="/login"
-                    className="text-foreground font-mont-alt hover:bg-muted block w-full rounded-lg py-3 text-center font-medium transition-colors duration-200"
-                    onClick={() => setIsMobileMenuOpen(false)}>
-                    Sign In
-                  </Link>
-                  <Link
-                    to="/register"
-                    className="bg-foreground font-mont-alt text-background hover:bg-foreground/90 block w-full rounded-lg py-3 text-center font-medium transition-all duration-200"
-                    onClick={() => setIsMobileMenuOpen(false)}>
-                    Get Started
-                  </Link>
+                  variants={mobileItemVariants}
+                >
+                  {userData?.data?.role?.toLowerCase() === "educator" && (
+                    <Link
+                      to="/dashboard"
+                      className="bg-foreground font-mont-alt text-background hover:bg-foreground/90 block w-full rounded-lg py-2 text-center font-medium transition-all duration-200"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                  )}
+
+                  {!userData ? (
+                    <Link
+                      to="/login"
+                      className="text-white bg-black border border-black outline-none rounded-xl font-mont-alt hover:bg-muted block w-full py-2 text-center font-medium transition-colors duration-200"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Sign In
+                    </Link>
+                  ) : (
+                    <Button
+                      className="bg-foreground font-mont-alt text-background hover:bg-foreground/90 block w-full rounded-lg py-2 text-center font-medium transition-all duration-200"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        handleLogout(); // ✅ call the function here
+                      }}
+                    >
+                      <span>Logout</span>
+                    </Button>
+                  )}
                 </motion.div>
               </div>
             </motion.div>

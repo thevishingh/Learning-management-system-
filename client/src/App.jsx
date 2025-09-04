@@ -13,8 +13,13 @@ import Careers from "@/public/pages/Career";
 import Login from "@/public/pages/Login";
 import Register from "@/public/pages/Register";
 import ComingSoonPage from "@/public/pages/ComingSoonPage";
+import getCurrentUser from "./customHooks/getCurrentUser";
+
+export const serverUrl = "http://localhost:8000";
 
 const App = () => {
+  // calling getCurrentUser function
+  getCurrentUser();
   return (
     <Routes>
       <Route element={<PublicLayout />}>

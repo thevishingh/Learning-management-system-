@@ -11,6 +11,9 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { IoEyeOutline } from "react-icons/io5";
 import { IoEye } from "react-icons/io5";
+import { serverUrl } from "@/App";
+import { useDispatch } from "react-redux";
+import { setUserData } from "@/redux/userSlice";
 
 export default function Login() {
   const {
@@ -28,29 +31,23 @@ export default function Login() {
 
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const dispatch = useDispatch();
 
   const onSubmit = async (data) => {
     try {
-      const res = await axios.post("http://localhost:5000/auth/login", data);
-
-      if (res.data.success) {
-        const { accessToken, user } = res.data.data;
-
-        // Optionally save token + user
-        localStorage.setItem("token", accessToken);
-        localStorage.setItem("user", JSON.stringify(user));
-
-        // Role-based navigation
-        if (user.role === "student") {
-          navigate("/student/dashboard");
-        } else if (user.role === "teacher") {
-          navigate("/teacher/dashboard");
-        } else {
-          navigate("/"); // fallback
-        }
-      }
+      const res = await axios.post(serverUrl + "/api/auth/login", data);
+      toast.success("Login Successfully", {
+        autoClose: 3000,
+      });
+      dispatch(setUserData(res.data));
     } catch (error) {
-      console.error("Login failed", error.response?.data || error.message);
+      toast.error(error.response?.data || error.message);
+      console.error(
+        "Login failed",
+        error.response?.data ||
+          error.message ||
+          "Login failed. Please try again."
+      );
     }
   };
 
@@ -144,15 +141,15 @@ export default function Login() {
               {/* Email */}
               <div>
                 <label
-                  htmlFor="userEmail"
+                  htmlFor="email"
                   className="block font-mont-alt text-sm font-medium text-gray-700"
                 >
                   Email
                 </label>
                 <input
                   type="email"
-                  id="userEmail"
-                  {...register("userEmail", {
+                  id="email"
+                  {...register("email", {
                     required: "Email is required",
                     pattern: {
                       value: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,
@@ -160,15 +157,15 @@ export default function Login() {
                     },
                   })}
                   className={`mt-1 font-mont p-2 w-full border-2 border-black rounded-md focus:outline-none focus:ring-1 transition duration-300 ${
-                    errors.userEmail
+                    errors.email
                       ? "border-red-500 ring-red-300"
                       : "focus:border-gray-200 focus:ring-gray-300"
                   }`}
                   placeholder="Enter your email"
                 />
-                {errors.userEmail && (
+                {errors.email && (
                   <p className="text-red-600 text-xs mt-1 font-mont-alt">
-                    {errors.userEmail.message}
+                    {errors.email.message}
                   </p>
                 )}
               </div>
@@ -211,40 +208,6 @@ export default function Login() {
                     {errors.password.message}
                   </p>
                 )}
-              </div>
-
-              {/* radio buttons for role selection */}
-              <div>
-                <Controller
-                  name="role"
-                  control={control}
-                  render={({ field }) => (
-                    <RadioGroup
-                      className="flex items-center justify-around cursor-pointer"
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="student" id="student" />
-                        <Label
-                          className="font-mont-alt text-sm font-medium text-gray-700"
-                          htmlFor="student"
-                        >
-                          Student
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="educator" id="educator" />
-                        <Label
-                          className="font-mont-alt text-sm font-medium text-gray-700"
-                          htmlFor="educator"
-                        >
-                          Educator
-                        </Label>
-                      </div>
-                    </RadioGroup>
-                  )}
-                />
               </div>
 
               {/* Submit Button */}

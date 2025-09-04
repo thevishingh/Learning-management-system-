@@ -9,9 +9,13 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { IoEyeOutline } from "react-icons/io5";
 import { IoEye } from "react-icons/io5";
+import { serverUrl } from "@/App";
+import { useDispatch } from "react-redux";
+import { setUserData } from "@/redux/userSlice";
 
 export default function Register() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const {
     register,
@@ -21,7 +25,7 @@ export default function Register() {
   } = useForm({
     mode: "onChange",
     defaultValues: {
-      role: "student", // 👈 default role value
+      role: "student", // default role value
     },
   });
 
@@ -29,18 +33,23 @@ export default function Register() {
 
   const onSubmit = async (data) => {
     try {
-      const response = await axios.post(
-        "http://localhost:5000/auth/register",
-        data
-      );
+      const response = await axios.post(serverUrl + "/api/auth/signup", data, {
+        withCredentials: true,
+      });
+      dispatch(setUserData(response.data));
       if (response.status === 201) {
-        toast.success("Registered successfully!");
+        toast.success("Registered successfully!", {
+          autoClose: 3000,
+        });
         navigate("/login");
       }
     } catch (error) {
       toast.error(
         error?.response?.data?.message ||
-          "Registration failed. Please try again."
+          "Registration failed. Please try again.",
+        {
+          autoClose: 3000,
+        }
       );
     }
   };
@@ -133,27 +142,27 @@ export default function Register() {
             {/* Username */}
             <div>
               <label
-                htmlFor="userName"
+                htmlFor="name"
                 className="block font-mont-alt text-sm font-medium text-gray-700"
               >
-                Username
+                name
               </label>
               <input
                 type="text"
-                id="userName"
-                {...register("userName", {
-                  required: "Username is required",
+                id="name"
+                {...register("name", {
+                  required: "name is required",
                   minLength: {
                     value: 3,
                     message: "Minimum 3 characters required",
                   },
                 })}
                 className="mt-1 font-mont p-2 border-black border-2 w-full rounded-md focus:border-gray-400 focus:outline-none focus:ring-0 focus:ring-gray-600 transition-colors duration-300"
-                placeholder="Enter your username"
+                placeholder="Enter your name"
               />
-              {errors.userName && (
+              {errors.name && (
                 <p className="text-sm text-red-600 mt-1">
-                  {errors.userName.message}
+                  {errors.name.message}
                 </p>
               )}
             </div>
@@ -161,15 +170,15 @@ export default function Register() {
             {/* Email */}
             <div>
               <label
-                htmlFor="userEmail"
+                htmlFor="email"
                 className="block font-mont-alt text-sm font-medium text-gray-700"
               >
                 Email
               </label>
               <input
                 type="email"
-                id="userEmail"
-                {...register("userEmail", {
+                id="email"
+                {...register("email", {
                   required: "Email is required",
                   pattern: {
                     value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
@@ -179,9 +188,9 @@ export default function Register() {
                 className="mt-1 font-mont p-2 border-black border-2 w-full rounded-md focus:border-gray-400 focus:outline-none focus:ring-0 focus:ring-gray-600 transition-colors duration-300"
                 placeholder="Enter your email"
               />
-              {errors.userEmail && (
+              {errors.email && (
                 <p className="text-sm text-red-600 mt-1">
-                  {errors.userEmail.message}
+                  {errors.email.message}
                 </p>
               )}
             </div>
