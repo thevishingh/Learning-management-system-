@@ -1,8 +1,8 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, easeInOut } from "framer-motion";
 import { Menu, X, ArrowRight, Zap, Search } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Logo from "@/assets/Logo.png";
 import { useDispatch, useSelector } from "react-redux";
 import { Button } from "../ui/button";
@@ -27,7 +27,20 @@ export default function Header2() {
   const [hoveredItem, setHoveredItem] = useState(null);
   const { userData } = useSelector((state) => state.user);
   const dispatch = useDispatch();
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const navigate = useNavigate();
 
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -85,6 +98,8 @@ export default function Header2() {
       });
       console.log(result);
       dispatch(setUserData(null));
+      // Redirect after logout
+      navigate("/login", { replace: true });
       toast.success("Logout Successfully");
     } catch (error) {
       console.log(error);
@@ -154,21 +169,60 @@ export default function Header2() {
               className="hidden items-center space-x-3 lg:flex"
               variants={itemVariants}
             >
-              <motion.button
-                className="text-muted-foreground rounded-lg p-2 transition-colors duration-200"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <div
+                className="relative inline-block text-left"
+                ref={dropdownRef}
               >
-                {!userData && <IoPersonCircle className=" h-auto w-10" />}
-              </motion.button>
-
-              {userData && (
-                <div className="w-[50px] h-[50px] rounded-full text-white flex items-center justify-center text-[20px] border-2 bg-black border-white cursor-pointer">
-                  {userData?.data?.name.slice(0, 1).toUpperCase()}
+                {/* Trigger */}
+                <div
+                  className="cursor-pointer"
+                  onClick={() => setIsOpen((prev) => !prev)}
+                >
+                  {!userData ? (
+                    <IoPersonCircle className="h-10 w-10 text-gray-700 hover:text-gray-900 transition" />
+                  ) : (
+                    <div className="w-[50px] h-[50px] rounded-full text-white flex items-center justify-center text-[20px] border-2 bg-black border-white">
+                      {userData?.data?.name
+                        ? userData.data.name.slice(0, 1).toUpperCase()
+                        : userData?.name
+                        ? userData.name.slice(0, 1).toUpperCase()
+                        : null}
+                    </div>
+                  )}
                 </div>
-              )}
 
-              {userData?.data?.role?.toLowerCase() === "educator" && (
+                {/* Dropdown Menu */}
+                {isOpen  && (
+                  <div className="absolute right-0 mt-2 w-48 rounded-lg bg-accent-200 shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                    <div className="py-">
+                      <Link
+                        to="/profile"
+                        onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          setIsOpen(false);
+                        }}
+                        className="block px-4 py-2 text-sm text-black font-syne font-medium hover:text-gray-500"
+                      >
+                        My Profile
+                      </Link>
+                      <hr className="bg-black" />
+                      <Link
+                        to="/my-courses"
+                        onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          setIsOpen(false);
+                        }}
+                        className="block px-4 py-2 text-sm text-black font-syne font-medium hover:text-gray-500"
+                      >
+                        My Courses
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {(userData?.data?.role?.toLowerCase() === "educator" ||
+                userData?.role?.toLowerCase() === "educator") && (
                 <Link
                   to="/dashboard"
                   className="bg-foreground cursor-pointer font-mont-alt capitalize text-background hover:bg-foreground/90 inline-flex items-center space-x-2 rounded-lg px-5 py-2.5 text-sm font-medium shadow-sm transition-all duration-200"
@@ -191,9 +245,10 @@ export default function Header2() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                    <Button className="bg-foreground cursor-pointer font-mont-alt capitalize text-background hover:bg-foreground/90 inline-flex items-center space-x-2 rounded-lg px-5 py-2.5 text-sm font-medium shadow-sm transition-all duration-200"
-                    onClick={()=>handleLogout()}
-                    >
+                  <Button
+                    className="bg-foreground cursor-pointer font-mont-alt capitalize text-background hover:bg-foreground/90 inline-flex items-center space-x-2 rounded-lg px-5 py-2.5 text-sm font-medium shadow-sm transition-all duration-200"
+                    onClick={() => handleLogout()}
+                  >
                     <span>Logout</span>
                     <ArrowRight className="h-4 w-4" />
                   </Button>
@@ -275,7 +330,7 @@ export default function Header2() {
                       className="bg-foreground font-mont-alt text-background hover:bg-foreground/90 block w-full rounded-lg py-2 text-center font-medium transition-all duration-200"
                       onClick={() => {
                         setIsMobileMenuOpen(false);
-                        handleLogout(); // ✅ call the function here
+                        handleLogout(); // call the function here
                       }}
                     >
                       <span>Logout</span>

@@ -7,8 +7,6 @@ import Lottie from "lottie-react";
 import { useNavigate } from "react-router-dom";
 import loginAnimation from "@/assets/Informative-pages/Banner-page/Loginverification.json";
 import "react-toastify/dist/ReactToastify.css";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { IoEyeOutline } from "react-icons/io5";
 import { IoEye } from "react-icons/io5";
 import { serverUrl } from "@/App";
@@ -19,7 +17,6 @@ export default function Login() {
   const {
     register,
     handleSubmit,
-    control,
     formState: { errors, isValid },
     reset,
   } = useForm({
@@ -35,18 +32,20 @@ export default function Login() {
 
   const onSubmit = async (data) => {
     try {
-      const res = await axios.post(serverUrl + "/api/auth/login", data);
+      const res = await axios.post(serverUrl + "/api/auth/login", data, {
+        withCredentials: true,
+      });
+      reset(); // Reset form fields
+      navigate("/", { replace: true }); // Always go to home after login
       toast.success("Login Successfully", {
         autoClose: 3000,
       });
       dispatch(setUserData(res.data));
     } catch (error) {
-      toast.error(error.response?.data || error.message);
+      toast.error(error.response?.data?.message);
       console.error(
         "Login failed",
-        error.response?.data ||
-          error.message ||
-          "Login failed. Please try again."
+        error.response?.data?.message || "Login failed. Please try again."
       );
     }
   };

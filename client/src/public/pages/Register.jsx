@@ -21,6 +21,7 @@ export default function Register() {
     register,
     handleSubmit,
     control,
+    reset,
     formState: { errors, isValid },
   } = useForm({
     mode: "onChange",
@@ -37,6 +38,7 @@ export default function Register() {
         withCredentials: true,
       });
       dispatch(setUserData(response.data));
+      reset({ role: "student" }); // Reset form fields
       if (response.status === 201) {
         toast.success("Registered successfully!", {
           autoClose: 3000,
