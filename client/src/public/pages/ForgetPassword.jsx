@@ -51,10 +51,8 @@ export default function ForgetPassword() {
     setStep(4);
   };
 
-
-  
   const handleBackToLogin = () => {
-    navigate("/login"); 
+    navigate("/login");
   };
 
   return (
@@ -135,16 +133,41 @@ export default function ForgetPassword() {
                 <h2 className="text-lg font-semibold mb-4 font-syne">
                   Enter OTP
                 </h2>
-                <input
-                  type="text"
-                  placeholder="Enter 6-digit OTP"
-                  {...register("otp", {
-                    required: "OTP is required",
-                    minLength: { value: 6, message: "OTP must be 6 digits" },
-                    maxLength: { value: 6, message: "OTP must be 6 digits" },
-                  })}
-                  className="border-2 border-black outline-none font-mont-alt text-black p-2 rounded w-full"
-                />
+                <div className="flex space-x-2 justify-center">
+                  {[...Array(6)].map((_, idx) => (
+                    <input
+                      key={idx}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      {...register(`otp[${idx}]`, {
+                        required: "OTP is required",
+                        pattern: {
+                          value: /^[0-9]$/,
+                          message: "Only numbers allowed",
+                        },
+                      })}
+                      className="border-2 border-black text-center w-12 h-12 text-lg rounded outline-none font-mont-alt"
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/, "");
+                        e.target.value = value;
+                        if (value && idx < 5) {
+                          document.getElementById(`otp-${idx + 1}`).focus();
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (
+                          e.key === "Backspace" &&
+                          !e.target.value &&
+                          idx > 0
+                        ) {
+                          document.getElementById(`otp-${idx - 1}`).focus();
+                        }
+                      }}
+                      id={`otp-${idx}`}
+                    />
+                  ))}
+                </div>
                 {errors.otp && (
                   <p className="text-red-500 text-sm font-mont-alt font-medium mt-1">
                     {errors.otp.message}
@@ -152,7 +175,16 @@ export default function ForgetPassword() {
                 )}
                 <button
                   type="button"
-                  onClick={handleSubmit(onSubmitStep2)}
+                  onClick={handleSubmit((data) => {
+                    // Combine OTP array into a string
+                    const otpValue = (data.otp || []).join("");
+                    if (otpValue.length !== 6) {
+                      alert("OTP must be 6 digits");
+                      return;
+                    }
+                    console.log("OTP verified:", otpValue);
+                    setStep(3);
+                  })}
                   className="bg-black font-mont font-semibold uppercase tracking-[3px] text-white w-full py-2 rounded mt-4"
                 >
                   Verify OTP
@@ -201,7 +233,14 @@ export default function ForgetPassword() {
                 <ConfettiSideCannons
                   type="button"
                   onClick={handleSubmit(onSubmitStep3)}
-                  className="bg-black font-mont font-semibold uppercase tracking-[3px] text-white w-full py-2 rounded mt-4"
+                  disabled={
+                    !password || errors.password || errors.confirmPassword
+                  } // disabled if invalid
+                  className={`bg-black font-mont font-semibold uppercase tracking-[3px] text-white w-full py-2 rounded mt-4 ${
+                    !password || errors.password || errors.confirmPassword
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }`}
                 >
                   Submit
                 </ConfettiSideCannons>
@@ -210,13 +249,13 @@ export default function ForgetPassword() {
 
             {step === 4 && (
               <div className="text-center py-6">
-                <h2 className="text-xl font-bold text-green-600">
+                <h2 className="text-xl font-syne capitalize font-bold text-green-600">
                   🎉 Password reset successfully!
                 </h2>
                 <Button
                   type="button"
                   onClick={handleBackToLogin}
-                  className="bg-black font-mont font-semibold uppercase tracking-[3px] px-4 py-2 rounded mt-6"
+                  className="bg-black  font-mont font-semibold uppercase tracking-[3px]  px-4 py-5 rounded-xl mt-6"
                 >
                   Back to Login
                 </Button>
